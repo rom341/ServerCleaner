@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from template import Template, ClientServerPathPair
+from ftps.client.Data.template import Template, ClientServerPathPair
 
 class TemplateEditor:
     def __init__(self, root, templates, template_listbox, template=None):
@@ -99,6 +99,7 @@ class TemplateEditor:
         if not keep_alive_increment_str.isdigit():
             messagebox.showerror("Error", "Keep Alive Increment must be a valid number.")
             return
+        
         keep_alive_timer = int(keep_alive_timer_str)
         keep_alive_increment = int(keep_alive_increment_str)
         
@@ -141,18 +142,17 @@ class TemplateEditor:
         dialog = tk.Toplevel(parent)
         dialog.title("Input Paths")
 
-        # Make the dialog modal by setting the transient property and grabbing the focus
         dialog.transient(parent)
-        dialog.grab_set()  # This prevents interaction with the parent window until the dialog is closed
+        dialog.grab_set() 
 
         tk.Label(dialog, text="Enter source path:").pack()
         source_entry = ttk.Entry(dialog)
-        source_entry.insert(0, source)  # Set the initial value for the source
+        source_entry.insert(0, source)
         source_entry.pack()
 
         tk.Label(dialog, text="Enter destination path:").pack()
         destination_entry = ttk.Entry(dialog)
-        destination_entry.insert(0, destination)  # Set the initial value for destination
+        destination_entry.insert(0, destination)
         destination_entry.pack()
 
         dialog.geometry("300x150")
@@ -168,7 +168,7 @@ class TemplateEditor:
         submit_button.pack(pady=5)
 
         dialog.transient(self.root)
-        dialog.wait_window()  # Wait for the dialog to close
+        dialog.wait_window()
 
         return result[0], result[1]
 
