@@ -1,16 +1,16 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from ftps.client.Data.template import Template, ClientServerPathPair
+from Data.template import Template, ClientServerPathPair
 
 class TemplateEditor:
-    def __init__(self, root, templates, template_listbox, template=None):
+    def __init__(self, root, on_save_callback, template=None):
         self.root = root
+        self.on_save_callback = on_save_callback
         self.template = template
-        self.templates = templates
-        self.template_listbox = template_listbox
         self.editor = tk.Toplevel(self.root)
 
     def run(self):
+        self.editor.transient(self.root)
         self.editor.grab_set()
         self.editor.title("Template Editor")
         self.editor.geometry("700x500")
@@ -55,7 +55,7 @@ class TemplateEditor:
         path_add_button = ttk.Button(self.editor, text="Add Path", command=self.add_path)
         path_add_button.pack(pady=5)
 
-        save_button = ttk.Button(self.editor, text="Save", command=self.save_template)
+        save_button = ttk.Button(self.editor, text="Save", command=self.get_template_from_form)
         save_button.pack(pady=10)
 
         if self.template:
@@ -67,16 +67,16 @@ class TemplateEditor:
             self.keep_alive_increment_entry.insert(0, str(self.template.keepAliveIncrement))
             self.paths = self.template.clientServerPaths
             for path in self.paths:
-                self.create_path_container(self.path_listbox, path, self.paths)
+                self.update_path_container(self.path_listbox, path, self.paths)
 
     def add_path(self):
         source, destination = self.path_dialog(self.editor)
         if source and destination:
             path_pair = ClientServerPathPair(source, destination)
             self.paths.append(path_pair)
-            self.create_path_container(self.path_listbox, path_pair, self.paths)
+            self.update_path_container(self.path_listbox, path_pair, self.paths)
 
-    def save_template(self):
+    def get_template_from_form(self):
         owner = self.owner_entry.get().strip()
         description = self.description_entry.get().strip()
         ttl_str = self.ttl_entry.get().strip()
@@ -91,7 +91,7 @@ class TemplateEditor:
             messagebox.showerror("Error", "TTL field must be a valid number.")
             return
 
-        ttl = int(ttl_str) 
+        ttl = int(ttl_str)
 
         if not keep_alive_timer_str.isdigit():
             messagebox.showerror("Error", "Keep Alive Timer must be a valid number.")
@@ -104,10 +104,13 @@ class TemplateEditor:
         keep_alive_increment = int(keep_alive_increment_str)
         
         new_template = Template(owner, description, self.paths, ttl, keep_alive, keep_alive_timer, keep_alive_increment)
-        self.save_edited_template(self.template, new_template, self.templates, self.template_listbox)
-        self.root.destroy()
 
-    def create_path_container(self, parent, path_pair, path_list):
+        if self.on_save_callback:
+            self.on_save_callback(new_template)
+        
+        self.editor.destroy()
+
+    def update_path_container(self, parent, path_pair, path_list):
         frame = ttk.Frame(parent)
         frame.pack(fill=tk.X, pady=2)
 
@@ -121,7 +124,7 @@ class TemplateEditor:
         destination_label.pack(side=tk.LEFT, padx=5)
 
         def edit_path():
-            source, destination = self.path_dialog()
+            source, destination = self.path_dialog(parent=self.editor)
             if source and destination:
                 path_pair.source = source
                 path_pair.destination = destination
@@ -140,10 +143,10 @@ class TemplateEditor:
 
     def path_dialog(self, parent, source="", destination=""):
         dialog = tk.Toplevel(parent)
-        dialog.title("Input Paths")
-
         dialog.transient(parent)
         dialog.grab_set() 
+
+        dialog.title("Input Paths")
 
         tk.Label(dialog, text="Enter source path:").pack()
         source_entry = ttk.Entry(dialog)
@@ -171,15 +174,3 @@ class TemplateEditor:
         dialog.wait_window()
 
         return result[0], result[1]
-
-
-
-    def save_edited_template(self, template, new_template, templates, template_listbox):
-        if template:
-            idx = templates.index(template)
-            templates[idx] = new_template
-        else:
-            templates.append(new_template)
-            template_listbox.insert(tk.END, new_template.description)
-        messagebox.showinfo("Info", "Template saved successfully.")
-

@@ -1,6 +1,11 @@
 from Data.sqlite_db_connection import SQLite_connection
 from Data.files import File
 from Data.users import User
+from Data.ftps_server import FtpsServer
+
+
+ftps_server = FtpsServer()
+ftps_server.start_server()
 
 # Create a new session
 connection = SQLite_connection("sqlite:///mydb.db")

@@ -2,3 +2,4 @@ clientData.conf
 serverData.conf
 __pycache__
 *.db
+*.pem
