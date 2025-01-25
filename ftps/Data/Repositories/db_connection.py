@@ -1,13 +1,13 @@
-from Data.table_base import Base
+from ftps.Data.table_base import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-class SQLite_connection:
+class DBConnection:
     def __init__(self, db_connection_string): 
         self.db_connection_string = db_connection_string
         self.session={}
 
-    def create_new_session(self, echo):
+    def create_new_session(self, echo=False):
         engine = create_engine(self.db_connection_string, echo=echo)
         Base.metadata.create_all(bind=engine)
 

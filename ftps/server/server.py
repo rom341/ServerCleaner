@@ -1,6 +1,6 @@
-from Data.sqlite_db_connection import SQLite_connection
-from Data.files import File
-from Data.users import User
+from ftps.Data.Repositories.db_connection import DBConnection
+from ftps.Data.template import Template
+from ftps.Data.user import User
 from Data.ftps_server import FtpsServer
 
 
@@ -8,7 +8,7 @@ ftps_server = FtpsServer()
 ftps_server.start_server()
 
 # Create a new session
-connection = SQLite_connection("sqlite:///mydb.db")
+connection = DBConnection("sqlite:///mydb.db")
 session = connection.create_new_session(echo=False)
 
 # Check if the user already exists
@@ -18,9 +18,9 @@ if not user:
     session.add(user)
 
 # Check if the file already exists
-file = session.query(File).filter_by(id=1).first()
+file = session.query(Template).filter_by(id=1).first()
 if not file:
-    file = File(
+    file = Template(
         owner=user,
         description="Test file",
         ttl_default=3600,
