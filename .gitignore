@@ -1,5 +1,6 @@
 clientData.conf
 serverData.conf
 __pycache__
+sqlite:
 *.db
 *.pem
