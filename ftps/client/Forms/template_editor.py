@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from ftps.Data.template import Template
-from ftps.Data.user import User
-from ftps.Data.client_server_path import ClientServerPath
+from ftps.Data.Models.client_server_path import ClientServerPath
+from ftps.Data.Models.user import User
+from ftps.Data.Models.template import Template
 from ftps.Data.Repositories.user_repository import UserRepository
 
 class TemplateEditor:
@@ -26,8 +26,9 @@ class TemplateEditor:
         owner_label.pack()
 
         self.owner_combobox = ttk.Combobox(self.editor, values=[user.name for user in self.users])
-        self.owner_combobox.set(self.template.owner.name if self.template else self.users[0].name if len(self.users) != 0 else "")
         self.owner_combobox.pack()
+        if len(self.users) != 0:
+            self.owner_combobox.current(0)
 
         create_user_button = ttk.Button(self.editor, text="Create User", command=self.create_user)
         create_user_button.pack(pady=5)
@@ -71,7 +72,7 @@ class TemplateEditor:
         save_button.pack(pady=10)
 
         if self.template:
-            self.owner_combobox.set(self.template.owner)
+            self.owner_combobox.set(self.template.owner.name)
             self.description_entry.insert(0, self.template.description)
             self.ttl_entry.insert(0, str(self.template.ttlDefault))
             self.keep_alive_var.set(self.template.keepAlive)
@@ -145,7 +146,7 @@ class TemplateEditor:
         destination_label.pack(side=tk.LEFT, padx=5)
 
         def edit_path():
-            source, destination = self.path_dialog()
+            source, destination = self.path_dialog(parent, path_pair.source, path_pair.destination)
             if source and destination:
                 path_pair.source = source
                 path_pair.destination = destination

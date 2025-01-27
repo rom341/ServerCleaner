@@ -1,6 +1,6 @@
-from ftps.Data.client_server_path import ClientServerPath
+from ftps.Data.Models.client_server_path import ClientServerPath
 from ftps.Data.Repositories.client_server_path_repository import ClientServerPathRepository
-from ftps.Data.template import Template
+from ftps.Data.Models.template import Template
 from ftps.Data.Repositories import db_connection
 from sqlalchemy.orm import joinedload
 
@@ -25,7 +25,7 @@ class TemplateRepository:
         session = self.connection.create_new_session(echo=False)
         try:
             return session.query(Template).options(
-                joinedload(Template.client_server_paths),
+                joinedload(Template.clientServerPaths),
                 joinedload(Template.owner)
                 ).all()
         finally:
@@ -35,7 +35,7 @@ class TemplateRepository:
         session = self.connection.create_new_session(echo=False)
         try:
             return session.query(Template).options(
-                joinedload(Template.client_server_paths),
+                joinedload(Template.clientServerPaths),
                 joinedload(Template.owner)
                 ).filter(Template.id == template_id).first()
         finally:
@@ -48,8 +48,28 @@ class TemplateRepository:
             if not template:
                 return False
 
+            current_paths = {path.id: path for path in template.clientServerPaths}
+            updated_paths = {path.id: path for path in updated_data['paths'] if path.id is not None}
+
+            # Remove paths that are not in updated paths
+            for path_id, path in current_paths.items():
+                if path_id not in updated_paths:
+                    session.delete(path)
+                
+            # Add or update remaining paths
+            for path in updated_data['paths']:
+                if path.id is None:
+                    path.template_id = template.id
+                    session.add(path)
+                else:
+                    existing_path = current_paths.get(path.id)
+                    existing_path.source = path.source
+                    existing_path.destination = path.destination
+
             for key, value in updated_data.items():
-                setattr(template, key, value)
+                if key != "paths":
+                    setattr(template, key, value)
+
             session.commit()
             return True
         except Exception as e:
@@ -78,7 +98,7 @@ class TemplateRepository:
         session = self.connection.create_new_session(echo=False)
         try:
             return session.query(Template).options(
-                joinedload(Template.client_server_paths),
+                joinedload(Template.clientServerPaths),
                 joinedload(Template.owner)
                 ).filter(Template.owner_id == owner_id).all()
         finally:

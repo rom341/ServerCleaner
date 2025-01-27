@@ -1,4 +1,4 @@
-from ftps.Data.table_base import Base
+from ftps.Data.Models.table_base import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

@@ -1,25 +1,23 @@
 import tkinter as tk
-from tkinter import ttk, simpledialog, messagebox
+from tkinter import ttk, messagebox
 from Forms.template_editor import TemplateEditor
-from ftps.Data.Repositories import db_connection
-from ftps.Data.template import Template
 from ftps.Data.Repositories.template_repository import TemplateRepository
+from ftps.client.Data.ftp_client import FTPClient
 
 class TemplateManagerApp:
-    def __init__(self, root, db_connection):
+    def __init__(self, root, db_connection, config_reader):
+        self.config_reader = config_reader
+        self.create_self_ftps_client()
         self.root = root
         self.root.title("Template Manager")
         self.root.geometry("900x600")
         
-        # Создаём экземпляр репозитория
         self.db_connection = db_connection
         self.template_repo = TemplateRepository(self.db_connection)
 
-        # Main UI Layout
         self.frame = ttk.Frame(root)
         self.frame.pack(fill=tk.BOTH, expand=True)
 
-        # Scrollable container
         self.canvas = tk.Canvas(self.frame)
         self.scrollbar = ttk.Scrollbar(self.frame, orient=tk.VERTICAL, command=self.canvas.yview)
         self.inner_frame = ttk.Frame(self.canvas)
@@ -40,6 +38,14 @@ class TemplateManagerApp:
 
         self.update_gui_template_list()
 
+    def create_self_ftps_client(self):
+        host = self.config_reader.get("ftps", "host")
+        port = self.config_reader.get("ftps", "port")
+        login = self.config_reader.get("ftps", "login")
+        password = self.config_reader.get("ftps", "password")
+
+        self.ftps = FTPClient(host, port, login, password)
+
     def update_gui_template_list(self):
         for widget in self.inner_frame.winfo_children():
             widget.destroy()
@@ -56,11 +62,14 @@ class TemplateManagerApp:
             label_description = ttk.Label(container, text=template.description, width=60, anchor="w")
             label_description.grid(row=0, column=1, padx=5, pady=2, sticky="w")
 
+            send_button = ttk.Button(container, text="Send", command=lambda t=template: self.send_selected_template(t))
+            send_button.grid(row=0, column=2, padx=5, pady=2, sticky="e")
+
             edit_button = ttk.Button(container, text="Edit", command=lambda t=template: self.edit_selected_template(t))
-            edit_button.grid(row=0, column=2, padx=5, pady=2, sticky="e")
+            edit_button.grid(row=0, column=3, padx=5, pady=2, sticky="e")
 
             delete_button = ttk.Button(container, text="Delete", command=lambda t=template: self.delete_selected_template(t))
-            delete_button.grid(row=0, column=3, padx=5, pady=2, sticky="e")
+            delete_button.grid(row=0, column=4, padx=5, pady=2, sticky="e")
 
             container.grid_columnconfigure(0, weight=1)
             container.grid_columnconfigure(1, weight=2)
@@ -71,11 +80,11 @@ class TemplateManagerApp:
                 if template:
                     self.template_repo.update_template(template.id, {
                         "description": new_template.description,
-                        "paths": new_template.client_server_paths,
-                        "ttl_default": new_template.ttl_default,
-                        "keep_alive": new_template.keep_alive,
-                        "keep_alive_timer": new_template.keep_alive_timer,
-                        "keep_alive_increment": new_template.keep_alive_increment,
+                        "paths": new_template.clientServerPaths,
+                        "ttlDefault": new_template.ttlDefault,
+                        "keepAlive": new_template.keepAlive,
+                        "keepAliveTimer": new_template.keepAliveTimer,
+                        "keepAliveIncrement": new_template.keepAliveIncrement,
                     })
                 else:
                     self.template_repo.create_template(new_template)
@@ -88,6 +97,15 @@ class TemplateManagerApp:
     def create_template(self):
         self.open_template_editor()
         self.update_gui_template_list()
+
+    def send_selected_template(self, template):
+        files_that_already_exist_on_server = self.ftps.find_exist_files_on_server(template.clientServerPaths)
+        if(files_that_already_exist_on_server):
+           messagebox.askokcancel("ERROR", f"Files are already exist on server: {files_that_already_exist_on_server}")
+        else:
+           self.ftps.upload_files(template.clientServerPaths)
+           messagebox.askokcancel("OK", "Files uploaded sucessfully")
+
 
     def edit_selected_template(self, template):
         self.open_template_editor(template)

@@ -1,4 +1,4 @@
-from ftps.Data.client_server_path import ClientServerPath
+from ftps.Data.Models.client_server_path import ClientServerPath
 from ftps.Data.Repositories import db_connection
 
 class ClientServerPathRepository:
@@ -34,6 +34,23 @@ class ClientServerPathRepository:
         try:
             session.query(ClientServerPath).filter(ClientServerPath.template_id == template_id).delete()
             session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            self.connection.close_session()
+
+    def update_client_server_path(self, path_id, updated_path):
+        session = self.connection.create_new_session(echo=False)
+        try:
+            path = session.query(ClientServerPath).filter(ClientServerPath.id == path_id).first()
+            if not path:
+                return False
+
+            path.source = updated_path.source
+            path.destination = updated_path.destination
+            session.commit()
+            return True
         except Exception as e:
             session.rollback()
             raise e

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, ForeignKey
 from sqlalchemy.orm import relationship
-from ftps.Data.table_base import Base
+from ftps.Data.Models.table_base import Base
 
 class ClientServerPath(Base):
     __tablename__ = "client_server_paths"

@@ -1,6 +1,6 @@
 from ftps.Data.Repositories.db_connection import DBConnection
-from ftps.Data.template import Template
-from ftps.Data.user import User
+from ftps.Data.Models.template import Template
+from ftps.Data.Models.user import User
 from Data.ftps_server import FtpsServer
 
 
@@ -23,10 +23,10 @@ if not file:
     file = Template(
         owner=user,
         description="Test file",
-        ttl_default=3600,
-        keep_alive=True,
-        keep_alive_timer=600,
-        keep_alive_increment=300
+        ttlDefault=3600,
+        keepAlive=True,
+        keepAliveTimer=600,
+        keepAliveIncrement=300
     )
     session.add(file)
 

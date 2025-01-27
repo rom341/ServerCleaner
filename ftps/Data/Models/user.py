@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship
-from ftps.Data.table_base import Base
+from ftps.Data.Models.table_base import Base
 
 class User(Base):
     __tablename__ = "users"

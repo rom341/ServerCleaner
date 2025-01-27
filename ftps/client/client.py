@@ -1,14 +1,14 @@
 import tkinter as tk
 from Forms.template_manager import TemplateManagerApp
 from ftps.Data.Repositories.db_connection import DBConnection
-from ftps.Data.template import Template
-from ftps.Data.user import User
+from ftps.Data.config_reader import ConfigReader
 
 if __name__ == "__main__":
-    connection_str = "sqlite:///ftps/client/Config/client_templates.db"
-    connection = DBConnection(connection_str)
+    configReader = ConfigReader("ftps/client/Config/clientData.conf")
+    connectionString = configReader.get("saves_db", "connection_string")
+    connection = DBConnection(connectionString)
 
     root = tk.Tk()
-    app = TemplateManagerApp(root, connection)
+    app = TemplateManagerApp(root, connection, configReader)
     root.mainloop()
     connection.close_session()

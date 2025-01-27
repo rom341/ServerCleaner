@@ -1,5 +1,5 @@
 from ftps.Data.Repositories import db_connection
-from ftps.Data.user import User
+from ftps.Data.Models.user import User
 from sqlalchemy.orm import joinedload
 
 class UserRepository:
